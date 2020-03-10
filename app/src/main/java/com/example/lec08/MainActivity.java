@@ -3,11 +3,15 @@ package com.example.lec08;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,13 +35,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //createDB();
-        //createTables();
-        //addStudet("12345", "Sam", "CSIS");
-        //addStudet("12346", "kate", "Csis");
+        createDB();
+        createTables();
+        addStudet("12345", "Sam", "CSIS");
+        addStudet("12346", "kate", "CSIS");
+        browseStudents();
+        Toast.makeText(this, output, Toast.LENGTH_SHORT).show();
         final SharedPreferences sps = PreferenceManager.getDefaultSharedPreferences(this);
         String texts = sps.getString("key1","Hello");
-        Toast.makeText(MainActivity.this, texts, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(MainActivity.this, texts, Toast.LENGTH_SHORT).show();
         final EditText editText = findViewById(R.id.editText);
         Button button = findViewById(R.id.button);
         ListView lv = findViewById(R.id.lv);
@@ -59,11 +65,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void  createDB(){
         try{
-            db = openOrCreateDatabase("test_db.db", MODE_PRIVATE, null);
+            db = openOrCreateDatabase("Students.db", Context.MODE_PRIVATE, null);
+            Toast.makeText(this, "DB Created", Toast.LENGTH_SHORT).show();
             output.append("Demo DB");
         }
         catch (Exception e){
-            output.append(e.getMessage());
+            output.append("Error creating DB");
         }
     }
 
@@ -79,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
             output.append("Created table students \n");
             String createGrades = "CREATE TABLE grades " + "(id text primary key, grade real);";
             db.execSQL(createGrades);
-            output.append("Create table students \n");
+            output.append("Create table grades \n");
         }
         catch (Exception e){
             output.append(e.getMessage());
@@ -116,5 +123,25 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return resultList;
+    }
+
+    private void browseStudents(){
+        String browesStudents = "SELECT * FROM students;";
+        try {
+            Cursor cursor = db.rawQuery(browesStudents,null);
+            output.append("Browsing students..\n");
+            if(cursor !=null){
+                cursor.moveToFirst();
+                do{
+                    String eachStudentRec = cursor.getString(0);
+                    output.append(eachStudentRec);
+                    Log.w("TAG", "HERE");
+                }while (cursor.moveToNext());
+            }
+            cursor.close();
+        }
+        catch (Exception e){
+            output.append("Error browsing.");
+        }
     }
 }
